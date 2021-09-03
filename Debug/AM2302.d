@@ -214,6 +214,7 @@ AM2302.obj: C:/ti/simplelink_cc13x2_26x2_sdk_5_20_00_52/source/ti/devices/cc13x2
 AM2302.obj: C:/ti/simplelink_cc13x2_26x2_sdk_5_20_00_52/source/ti/devices/cc13x2_cc26x2/driverlib/gpio.h
 AM2302.obj: C:/ti/simplelink_cc13x2_26x2_sdk_5_20_00_52/source/ti/devices/cc13x2_cc26x2/inc/hw_gpio.h
 AM2302.obj: C:/ti/simplelink_cc13x2_26x2_sdk_5_20_00_52/source/ti/devices/cc13x2_cc26x2/driverlib/timer.h
+AM2302.obj: C:/Users/swamb/workspace_v10/AM2302_CC26X2R1_tirtos_ccs/AM2302.h
 
 ../AM2302.c:
 
@@ -642,4 +643,6 @@ C:/ti/simplelink_cc13x2_26x2_sdk_5_20_00_52/source/ti/devices/cc13x2_cc26x2/driv
 C:/ti/simplelink_cc13x2_26x2_sdk_5_20_00_52/source/ti/devices/cc13x2_cc26x2/inc/hw_gpio.h:
 
 C:/ti/simplelink_cc13x2_26x2_sdk_5_20_00_52/source/ti/devices/cc13x2_cc26x2/driverlib/timer.h:
+
+C:/Users/swamb/workspace_v10/AM2302_CC26X2R1_tirtos_ccs/AM2302.h:
 

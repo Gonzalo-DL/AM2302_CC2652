@@ -1,40 +1,10 @@
 /*
- * Copyright (c) 2015-2019, Texas Instruments Incorporated
- * All rights reserved.
+ * AM2302_reading.c
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * *  Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * *  Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * *  Neither the name of Texas Instruments Incorporated nor the names of
- *    its contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
- * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
- * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
- * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
- * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *  Created on: 31-08-2021
+ *      Author: Gonzalo
  */
 
-/*
- *  ======== hello.c ========
- */
-
-/* TI-RTOS Header files */
 #include <xdc/std.h>
 #include <stdio.h>
 #include <string.h>
@@ -47,40 +17,24 @@
 #include <ti/drivers/GPIO.h>
 #include <ti/drivers/UART2.h>
 
-
-
 /* Driver configuration */
 #include <ti_drivers_config.h>
 #include <ti/drivers/timer/GPTimerCC26XX.h>
+#include <AM2302.h>
+extern GPTimerCC26XX_Handle timerTempHandle; //Handle para timer de temperatura
 
-/* Could be anything, like computing primes */
-#define ADQPERIODMS 1000 //Periodo de adquisicion en ms
-#define AM2302THRESH 5000 //Threshold para 1 o 0 de AM2302
-//0 son ~80us y 1 ~120us. Como el clock es 48MHz:
-//80*48 = 3840 ticks.
-//120*48 = 5760 ticks
+extern Semaphore_Struct semTempStruct; // Handle y estructura para semaforo para adquisicion de temperatura.
+extern Semaphore_Handle semTempHandle;
 
-UART2_Handle uart;
-char msg[10];
+extern Mailbox_Handle mbxTempHandle;
 
-GPTimerCC26XX_Handle timerTempHandle;
-
-Semaphore_Struct semTempStruct; // Handle y estructura para semaforo para adquisicion de temperatura.
-Semaphore_Handle semTempHandle;
-
-//uint32_t mailboxBuffer[40];// Buffer de 40 para AM2302
-//Mailbox_Struct mbxTempStruct; //Estructura para creacion de mailbox de temperatura en stack
-Mailbox_Handle mbxTempHandle; // Handle para mailbox (Queue) para adquisicion de temperatura.
-
-GPTimerCC26XX_Handle timerTempHandle; //Handle para timer adquisicion de temperatura.
-GPTimerCC26XX_Handle timer1Handle; //Handle para timer1.
-/* Make sure we have nice 8-byte alignment on the stack to avoid wasting memory */
 #pragma DATA_ALIGN(readAM2302TaskStack, 8);
-Task_Struct readAM2302Task;
-
-#define STACKSIZE 2048
-
+extern Task_Struct readAM2302Task;
 static uint8_t readAM2302TaskStack[STACKSIZE];
+
+extern UART2_Handle uart;
+extern char msg[10];
+
 
 void ISR_GPIO_23(uint_least8_t index)
 {
@@ -95,7 +49,8 @@ void ISR_Timer_Temp(GPTimerCC26XX_Handle handle, GPTimerCC26XX_IntMask interrupt
     GPIO_disableInt (CONFIG_GPIO_23); // Desactivar GPIO ints
     Semaphore_post(semTempHandle);
 }
-Void readAM2302TaskFunc(UArg arg0, UArg arg1)
+
+void readAM2302TaskFunc(UArg arg0, UArg arg1)
 {
 
     GPIO_write(CONFIG_GPIO_23, 1); //Set high para partir
@@ -112,6 +67,7 @@ Void readAM2302TaskFunc(UArg arg0, UArg arg1)
 
 
         GPIO_write(CONFIG_GPIO_23, 0); //Set LOW para partir adquisicion.
+        //GPIO_write(CONFIG_GPIO_LED_0_CONST, 1);
         Task_sleep(5000/Clock_tickPeriod); //Esperar 5 ms para asegurar recepcion de instruccion para partir
         GPTimerCC26XX_start(timerTempHandle);
         GPIO_write(CONFIG_GPIO_23, 1); //Set HIGH para empezar a escuchar AM2302
@@ -130,7 +86,7 @@ Void readAM2302TaskFunc(UArg arg0, UArg arg1)
 
 
         Semaphore_pend(semTempHandle, BIOS_WAIT_FOREVER);
-
+        //GPIO_write(CONFIG_GPIO_LED_0_CONST, 0);
 
         //Extraer DATOS de queue y convertirlos a bytes
         //Se guardan los valores del timer en el mailbox.
@@ -139,33 +95,33 @@ Void readAM2302TaskFunc(UArg arg0, UArg arg1)
 
        /* --- Humedad --- */
        Mailbox_pend(mbxTempHandle, &i, BIOS_NO_WAIT); //eliminar primer timing
-       memcpy(msg, "\r\nRH:   \r\n", 10); //LSB first
-       UART2_write(uart, &msg, 10, NULL);
+       //memcpy(msg, "\r\nRH:   \r\n", 10); //LSB first
+       //UART2_write(uart, &msg, 10, NULL);
        for (i=0; i<17; i++){
-            memset(msg,' ', 10);
+            //memset(msg,' ', 10);
             Mailbox_pend(mbxTempHandle, &humedad[i],BIOS_NO_WAIT);
-            sprintf(msg,"%d - ", humedad[i]);
-            UART2_write(uart, &msg, 10, NULL);
+            //sprintf(msg,"%d - ", humedad[i]);
+            //UART2_write(uart, &msg, 10, NULL);
         }
 
         /* --- Temperatura --- */
-        memcpy(msg, "\r\nTemp: \r\n", 10); //LSB first
-        UART2_write(uart, &msg, 10, NULL);
+        //memcpy(msg, "\r\nTemp: \r\n", 10); //LSB first
+        //UART2_write(uart, &msg, 10, NULL);
         for (i=0; i<16; i++){
-            memset(msg,' ', 10);
+            //memset(msg,' ', 10);
             Mailbox_pend(mbxTempHandle, &temperatura[i],BIOS_NO_WAIT);
-            sprintf(msg,"%d - ", temperatura[i]);
-            UART2_write(uart, &msg, 10, NULL);
+            //sprintf(msg,"%d - ", temperatura[i]);
+            //UART2_write(uart, &msg, 10, NULL);
         }
 
         /* --- CheckSum --- */ //LSB first
-        memcpy(msg, "\r\nCSum: \r\n", 10); //LSB first
-        UART2_write(uart, &msg, 10, NULL);
+        //memcpy(msg, "\r\nCSum: \r\n", 10); //LSB first
+        //UART2_write(uart, &msg, 10, NULL);
         for (i=0; i<8; i++){
-            memset(msg,' ', 10);
+            //memset(msg,' ', 10);
             Mailbox_pend(mbxTempHandle, &checksum[i],BIOS_NO_WAIT);
-            sprintf(msg,"%d - ", checksum[i]);
-            UART2_write(uart, &msg, 10, NULL);
+            //sprintf(msg,"%d - ", checksum[i]);
+            //UART2_write(uart, &msg, 10, NULL);
         }
 
 
@@ -221,8 +177,7 @@ Void readAM2302TaskFunc(UArg arg0, UArg arg1)
 
 
 
-        Task_sleep(3000000/Clock_tickPeriod); // Esperar para volver a partir.
-        GPIO_toggle(CONFIG_GPIO_LED_0_CONST);
+        Task_sleep(5000000/Clock_tickPeriod); // Esperar para volver a partir.
 
         //Volver a partir
 
@@ -233,33 +188,7 @@ Void readAM2302TaskFunc(UArg arg0, UArg arg1)
     }
 }
 
-
-/*
- *  ======== main ========
- *
- */
-int main(void)
-{
-    Board_init();
-    GPIO_init();
-    //Timer_init();
-
-    Semaphore_Params semParams;
-    Mailbox_Params mbxParams;
-
-    UART2_Params uartParams;
-    /* UART para lectura datos en SERIAL */
-    UART2_Params_init(&uartParams);
-    uartParams.baudRate = 115200;
-    uart = UART2_open(CONFIG_UART2_0, &uartParams);
-
-
-
-
-
-    GPIO_setConfig(CONFIG_GPIO_23, GPIO_CFG_OUT_STD); // Settear al principio como salida
-    GPIO_setCallback(CONFIG_GPIO_23, ISR_GPIO_23); // Funcion para interrupt del pin
-
+void init_Timer_Temp(){ // Iniciar timer para medicion de temperatura con AM2302
     GPTimerCC26XX_Params timerTempParams;
     GPTimerCC26XX_Params_init(&timerTempParams);
     timerTempParams.width = GPT_CONFIG_32BIT;
@@ -273,31 +202,31 @@ int main(void)
     GPTimerCC26XX_setLoadValue(timerTempHandle, 48000000);
     GPTimerCC26XX_registerInterrupt(timerTempHandle, ISR_Timer_Temp, GPT_INT_TIMEOUT); //Register INT
     GPTimerCC26XX_enableInterrupt(timerTempHandle, GPT_INT_TIMEOUT); // Enable INT
+}
 
+void init_mbx_Temp(){ // Iniciar mailbox para adquisicion de temperatura con AM2302
+    Mailbox_Params mbxParams;
+    Mailbox_Params_init(&mbxParams);
+    mbxTempHandle = Mailbox_create(sizeof(uint32_t), 42, &mbxParams, NULL);
+}
 
-    /* Task para Temperatura & Humedad */
+void init_sem_Temp(){ // Iniciar semaforo para adquisicion de temperatura con AM2302
+    Semaphore_Params semParams;
+    Semaphore_Params_init(&semParams);
+    Semaphore_construct(&semTempStruct, 0, &semParams);
+    semTempHandle = Semaphore_handle(&semTempStruct);
+}
+
+void init_task_Temp(){ // Iniciar task para adquisicion de temperatura con AM2302 para TIRTOS
     Task_Params readAM2302TaskParams;
     Task_Params_init(&readAM2302TaskParams);
     readAM2302TaskParams.stackSize = STACKSIZE;
     readAM2302TaskParams.priority = 1;
     readAM2302TaskParams.stack = &readAM2302TaskStack;
-
     Task_construct(&readAM2302Task, readAM2302TaskFunc, &readAM2302TaskParams, NULL);
-
-    /* Semaforo para adquisicion de temperatura/humedad */
-    Semaphore_Params_init(&semParams);
-    Semaphore_construct(&semTempStruct, 0, &semParams);
-    semTempHandle = Semaphore_handle(&semTempStruct);
-
-    /* Mailbox para temperatura/humedad*/
-    Mailbox_Params_init(&mbxParams);
-    mbxTempHandle = Mailbox_create(sizeof(uint32_t), 80, &mbxParams, NULL);
-
-
-
-    /* Start kernel. */
-    BIOS_start();
-
-    return (0);
 }
 
+void init_GPIO_Temp(){ // Iniciar GPIO para adquisicion de temperatura con AM2302
+    GPIO_setConfig(CONFIG_GPIO_23, GPIO_CFG_OUT_STD); // Settear al principio como salida
+    GPIO_setCallback(CONFIG_GPIO_23, ISR_GPIO_23); // Funcion para interrupt del pin
+}

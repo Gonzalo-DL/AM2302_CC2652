@@ -13,7 +13,7 @@ ORDERED_OBJS += \
 "./AM2302.obj" \
 "./syscfg/ti_devices_config.obj" \
 "./syscfg/ti_drivers_config.obj" \
-"./AM2302_reading.obj" \
+"./main.obj" \
 "../cc13x2_cc26x2_tirtos.cmd" \
 $(GEN_CMDS__FLAG) \
 -lti_utils_build_linker.cmd.genlibs \
@@ -159,8 +159,8 @@ AM2302_CC26X2R1_tirtos_ccs.hex: $(EXE_OUTPUTS)
 # Other Targets
 clean:
 	-$(RM) $(GEN_MISC_FILES__QUOTED)$(BIN_OUTPUTS__QUOTED)$(GEN_FILES__QUOTED)$(EXE_OUTPUTS__QUOTED)
-	-$(RM) "AM2302.obj" "syscfg\ti_devices_config.obj" "syscfg\ti_drivers_config.obj" "AM2302_reading.obj" 
-	-$(RM) "AM2302.d" "syscfg\ti_devices_config.d" "syscfg\ti_drivers_config.d" "AM2302_reading.d" 
+	-$(RM) "AM2302.obj" "syscfg\ti_devices_config.obj" "syscfg\ti_drivers_config.obj" "main.obj" 
+	-$(RM) "AM2302.d" "syscfg\ti_devices_config.d" "syscfg\ti_drivers_config.d" "main.d" 
 	-$(RMDIR) $(GEN_MISC_DIRS__QUOTED)
 	-@echo 'Finished clean'
 	-@echo ' '

@@ -18,7 +18,7 @@ C_SRCS += \
 ../AM2302.c \
 ./syscfg/ti_devices_config.c \
 ./syscfg/ti_drivers_config.c \
-../AM2302_reading.c 
+../main.c 
 
 GEN_CMDS += \
 ./configPkg/linker.cmd 
@@ -37,7 +37,7 @@ C_DEPS += \
 ./AM2302.d \
 ./syscfg/ti_devices_config.d \
 ./syscfg/ti_drivers_config.d \
-./AM2302_reading.d 
+./main.d 
 
 GEN_OPTS += \
 ./configPkg/compiler.opt 
@@ -46,7 +46,7 @@ OBJS += \
 ./AM2302.obj \
 ./syscfg/ti_devices_config.obj \
 ./syscfg/ti_drivers_config.obj \
-./AM2302_reading.obj 
+./main.obj 
 
 GEN_MISC_FILES += \
 ./syscfg/ti_drivers_config.h \
@@ -63,7 +63,7 @@ OBJS__QUOTED += \
 "AM2302.obj" \
 "syscfg\ti_devices_config.obj" \
 "syscfg\ti_drivers_config.obj" \
-"AM2302_reading.obj" 
+"main.obj" 
 
 GEN_MISC_FILES__QUOTED += \
 "syscfg\ti_drivers_config.h" \
@@ -76,7 +76,7 @@ C_DEPS__QUOTED += \
 "AM2302.d" \
 "syscfg\ti_devices_config.d" \
 "syscfg\ti_drivers_config.d" \
-"AM2302_reading.d" 
+"main.d" 
 
 GEN_FILES__QUOTED += \
 "configPkg\linker.cmd" \
@@ -88,7 +88,7 @@ C_SRCS__QUOTED += \
 "../AM2302.c" \
 "./syscfg/ti_devices_config.c" \
 "./syscfg/ti_drivers_config.c" \
-"../AM2302_reading.c" 
+"../main.c" 
 
 SYSCFG_SRCS__QUOTED += \
 "../AM2302.syscfg" 
